@@ -1,0 +1,14 @@
+{
+  "name": "briefscope_local_cpu",
+  "display_name": "BriefScope LOCAL CPU",
+  "ui_entry_point": "/api/briefscope_local_cpu/ui",
+  "configuration_entry_point": "/api/briefscope_local_cpu/config",
+  "documentation_entry_point": "/api/briefscope_local_cpu/docs",
+  "healthcheck_entry_point": "/api/briefscope_local_cpu/health",
+  "version": "1.0.0",
+  "logo": "logo.png",
+  "description": "Agente de análisis documental sobre los documentos que sube el usuario: búsqueda en el contenido (RAG cuando el corpus es grande, o contexto completo cuando es pequeño), resumen e investigación, y generación de archivos descargables (PDF, DOCX, XLSX, PPTX, MD, TXT). Versión LOCAL CPU: LLM vía Ollama y embeddings locales (sentence-transformers), ejecutándose en CPU; sin internet ni API keys.",
+  "description_en": "Document-analysis agent over the user's uploaded documents: content search (RAG for large corpora, full context for small ones), summarization and research, and generation of downloadable files (PDF, DOCX, XLSX, PPTX, MD, TXT). LOCAL CPU version: LLM via Ollama and local embeddings (sentence-transformers), running on CPU; no internet or API keys required.",
+  "author": "BriefScope",
+  "license": "MIT"
+}
