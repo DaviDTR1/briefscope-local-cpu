@@ -1,8 +1,12 @@
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from app.config import GENERATED_DIR
-import os
+
+from app.services.documents import (
+    list_generated,
+    safe_generated_path,
+    delete_generated,
+)
 
 router = APIRouter()
 
@@ -10,38 +14,26 @@ router = APIRouter()
 class FileInfo(BaseModel):
     filename: str
     size: int
-
-
-def _safe_path(filename: str):
-    if "/" in filename or "\\" in filename or ".." in filename:
-        raise HTTPException(status_code=400, detail="Invalid file name")
-    path = GENERATED_DIR / filename
-    if not path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
-    return path
-
-
-def _list_files():
-    """List generated files from GENERATED_DIR, newest first."""
-    if not GENERATED_DIR.exists():
-        return []
-    files = [
-        f for f in GENERATED_DIR.iterdir()
-        if f.is_file() and not f.name.startswith('.')
-    ]
-    files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
-    return [FileInfo(filename=f.name, size=f.stat().st_size) for f in files]
+    title: str
+    created_at: str
+    format: str
 
 
 @router.get("", response_model=list[FileInfo])
 @router.get("/", response_model=list[FileInfo], include_in_schema=False)
-def list_files():
-    return _list_files()
+def list_files(project_id: int = Query(..., description="Owning project id")):
+    """List the deliverables generated inside a single project, newest first."""
+    return [FileInfo(**e) for e in list_generated(project_id)]
 
 
 @router.get("/{filename}")
-def download_file(filename: str):
-    path = _safe_path(filename)
+def download_file(
+    filename: str,
+    project_id: int = Query(..., description="Owning project id"),
+):
+    path = safe_generated_path(project_id, filename)
+    if path is None:
+        raise HTTPException(status_code=404, detail="File not found")
     media_types = {
         "pdf": "application/pdf",
         "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -56,6 +48,9 @@ def download_file(filename: str):
 
 
 @router.delete("/{filename}", status_code=204)
-def delete_file(filename: str):
-    path = _safe_path(filename)
-    path.unlink()
+def delete_file(
+    filename: str,
+    project_id: int = Query(..., description="Owning project id"),
+):
+    if not delete_generated(project_id, filename):
+        raise HTTPException(status_code=404, detail="File not found")

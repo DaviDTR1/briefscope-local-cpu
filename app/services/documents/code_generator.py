@@ -18,9 +18,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from app.config import GENERATED_DIR
 from app.logging_config import logger
-from app.services.documents.store import build_dest
+from app.services.documents.store import build_dest, project_dir
 
 _VALID = ("docx", "pdf", "pptx", "xlsx")
 
@@ -62,6 +61,7 @@ if not _OUT.exists():
 
 
 def generate_code(
+    project_id: int,
     python_code: str,
     formato: str,
     nombre: str,
@@ -82,7 +82,7 @@ def generate_code(
             ),
         }
 
-    dest = build_dest(fmt, nombre)
+    dest = build_dest(project_id, fmt, nombre)
     script = (
         _PREAMBLE.format(output_path=str(dest), output_format=fmt)
         + "\n# --- codigo del agente ---\n"
@@ -98,7 +98,7 @@ def generate_code(
         proc = subprocess.run(
             [sys.executable, script_path],
             capture_output=True, text=True,
-            timeout=timeout_seconds, cwd=str(GENERATED_DIR),
+            timeout=timeout_seconds, cwd=str(project_dir(project_id)),
         )
         ok = proc.returncode == 0 and dest.exists()
         if ok:

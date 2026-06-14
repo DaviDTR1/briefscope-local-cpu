@@ -203,7 +203,7 @@ def _build_executable(name: str, ctx: RunContext) -> StructuredTool:
         from app.services.documents import read_generated
 
         def _read_doc(nombre: str) -> str:
-            return read_generated(nombre)
+            return read_generated(ctx.project_id, nombre)
 
         return StructuredTool(
             name="leer_documento",

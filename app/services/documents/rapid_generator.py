@@ -52,6 +52,7 @@ blockquote { border-left: 4px solid #0f3460; margin: 14px 0; padding: 2px 16px;
 
 
 def generate_markdown(
+    project_id: int,
     markdown_content: str,
     formato: str,
     nombre: str,
@@ -66,14 +67,15 @@ def generate_markdown(
             f"Use one of {_VALID} or switch to the code tool (pptx/xlsx)."
         )
 
-    dest = build_dest(fmt, nombre)
+    dest = build_dest(project_id, fmt, nombre)
+    titulo = (nombre or "Document").strip() or "Document"
 
     if fmt == "docx":
-        _md_to_docx(markdown_content, dest)
+        _md_to_docx(markdown_content, dest, titulo)
     elif fmt == "pdf":
-        _md_to_pdf(markdown_content, dest, estilo_css)
+        _md_to_pdf(markdown_content, dest, estilo_css, titulo)
     elif fmt == "html":
-        _md_to_html(markdown_content, dest, estilo_css)
+        _md_to_html(markdown_content, dest, estilo_css, titulo)
     elif fmt == "md":
         dest.write_text(markdown_content, encoding="utf-8")
     else:  # txt
@@ -86,13 +88,14 @@ def generate_markdown(
 # --------------------------------------------------------------------------- #
 # Converters
 # --------------------------------------------------------------------------- #
-def _md_to_docx(content: str, dest: Path) -> None:
+def _md_to_docx(content: str, dest: Path, titulo: str = "Document") -> None:
     with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as tmp:
         tmp.write(content)
         tmp_path = tmp.name
     try:
         subprocess.run(
-            ["pandoc", tmp_path, "-o", str(dest), "--from", "gfm", "--to", "docx"],
+            ["pandoc", tmp_path, "-o", str(dest), "--from", "gfm", "--to", "docx",
+             "--metadata", f"title={titulo}"],
             check=True, capture_output=True, text=True, timeout=60,
         )
     except FileNotFoundError as exc:
@@ -103,27 +106,29 @@ def _md_to_docx(content: str, dest: Path) -> None:
         os.unlink(tmp_path)
 
 
-def _md_to_pdf(content: str, dest: Path, estilo_css: str | None) -> None:
+def _md_to_pdf(content: str, dest: Path, estilo_css: str | None, titulo: str = "Document") -> None:
     from weasyprint import HTML
 
-    html = _md_to_html_string(content, estilo_css)
+    html = _md_to_html_string(content, estilo_css, titulo)
     HTML(string=html).write_pdf(str(dest))
 
 
-def _md_to_html(content: str, dest: Path, estilo_css: str | None) -> None:
-    dest.write_text(_md_to_html_string(content, estilo_css), encoding="utf-8")
+def _md_to_html(content: str, dest: Path, estilo_css: str | None, titulo: str = "Document") -> None:
+    dest.write_text(_md_to_html_string(content, estilo_css, titulo), encoding="utf-8")
 
 
-def _md_to_html_string(content: str, estilo_css: str | None) -> str:
+def _md_to_html_string(content: str, estilo_css: str | None, titulo: str = "Document") -> str:
+    import html as _html
     import markdown
 
     body = markdown.markdown(
         content, extensions=["tables", "fenced_code", "sane_lists", "nl2br"]
     )
     css = estilo_css if estilo_css else _DEFAULT_CSS
+    safe_title = _html.escape(titulo)
     return (
         "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n"
-        f"<title>Document</title>\n<style>{css}</style>\n</head>\n<body>\n"
+        f"<title>{safe_title}</title>\n<style>{css}</style>\n</head>\n<body>\n"
         f"{body}\n</body>\n</html>"
     )
 

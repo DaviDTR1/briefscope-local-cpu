@@ -207,25 +207,30 @@ async def run_agent(
                 result = ""
                 try:
                     if name == "generar_documento_markdown":
-                        from app.services.documents import generate_markdown, save_source_sidecar
+                        from app.services.documents import (
+                            generate_markdown, save_source_sidecar, save_metadata,
+                        )
                         contenido = args.get("contenido_markdown", "")
                         filename = generate_markdown(
-                            contenido, formato, nombre,
+                            ctx.project_id, contenido, formato, nombre,
                             estilo_css=args.get("estilo_css"),
                         )
-                        save_source_sidecar(filename, contenido)
+                        save_source_sidecar(ctx.project_id, filename, contenido)
                     else:
-                        from app.services.documents import generate_code, save_source_sidecar
+                        from app.services.documents import (
+                            generate_code, save_source_sidecar, save_metadata,
+                        )
                         codigo = args.get("codigo_python", "")
-                        gen = generate_code(codigo, formato, nombre)
+                        gen = generate_code(ctx.project_id, codigo, formato, nombre)
                         if not gen["success"]:
                             raise RuntimeError(
                                 "The code did not generate the document. Fix it and retry.\n"
                                 f"stderr:\n{gen['stderr']}"
                             )
                         filename = gen["filename"]
-                        save_source_sidecar(filename, codigo)
+                        save_source_sidecar(ctx.project_id, filename, codigo)
 
+                    save_metadata(ctx.project_id, filename, title=nombre, formato=formato)
                     ctx.generated_files.append(filename)
                     yield json.dumps({"__file_ready__": True, "filename": filename, "formato": formato})
                     result = (

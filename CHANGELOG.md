@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-06-14
+
+### Fixed
+
+- Generated documents are now scoped per project: each deliverable is stored
+  under a per-project folder (`generated/project_<id>`) and only appears in the
+  project that created it. Previously all projects shared a single folder, so
+  files generated in one project leaked into every other project.
+
+### Added
+
+- Per-document metadata sidecar (title, creation timestamp, format and owning
+  project) saved next to each generated file and surfaced in the files panel.
+- The file list in the UI now shows each document's title and creation date.
+
+### Changed
+
+- The `/files` list, download and delete endpoints now require a `project_id`
+  and operate strictly within that project's folder.
+
 ## [1.0.0] - 2026-06-14
 
 First public release as a QueAI plugin.

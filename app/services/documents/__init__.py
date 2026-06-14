@@ -22,7 +22,16 @@ from __future__ import annotations
 
 from app.services.documents.rapid_generator import generate_markdown
 from app.services.documents.code_generator import generate_code
-from app.services.documents.store import read_generated, save_source_sidecar
+from app.services.documents.store import (
+    read_generated,
+    save_source_sidecar,
+    save_metadata,
+    read_metadata,
+    list_generated,
+    project_dir,
+    safe_generated_path,
+    delete_generated,
+)
 from app.services.documents.guides import (
     read_format_guide,
     read_type_guide,
@@ -35,6 +44,12 @@ __all__ = [
     "generate_code",
     "read_generated",
     "save_source_sidecar",
+    "save_metadata",
+    "read_metadata",
+    "list_generated",
+    "project_dir",
+    "safe_generated_path",
+    "delete_generated",
     "read_format_guide",
     "read_type_guide",
     "list_type_guides",
