@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-15
+
+### Added
+
+- New **researcher** sub-agent (`investigador`). The main agent now delegates
+  detailed investigation over the project documents — in-depth summaries, study
+  plans, reports, analyses — to a dedicated research agent. The researcher
+  searches the documents via RAG, reads documents and saved reports, writes the
+  full report in Markdown, saves it, and returns a brief description plus the
+  saved report name (which the main agent can hand to the document creator when a
+  downloadable file is wanted).
+- The main agent (orchestrator) now focuses on simple tasks it can resolve
+  itself (a quick RAG lookup, reading a document or a saved report, direct
+  answers) and delegates complex investigation and document generation to the
+  researcher and creator sub-agents respectively.
+
 ## [1.2.0] - 2026-06-14
 
 ### Fixed

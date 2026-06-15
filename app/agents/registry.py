@@ -91,6 +91,14 @@ class _GenerarCodigoInput(BaseModel):
     nombre_archivo: str = Field(description="Name without extension. Only letters, numbers and hyphens.")
 
 
+class _InvocarInvestigadorInput(BaseModel):
+    tarea: str = Field(
+        description="The investigation to carry out over the project documents: a detailed "
+        "summary, study plan, report, analysis, etc. Describe clearly what to research and "
+        "what the resulting report should cover."
+    )
+
+
 class _InvocarCreadorInput(BaseModel):
     nombre_informe: str = Field(
         description="Name of the saved source content to use as the base."
@@ -253,6 +261,19 @@ def _build_intercepted(name: str) -> StructuredTool:
             func=_stub,
             args_schema=_GenerarCodigoInput,
         )
+    if name == "invocar_investigador":
+        return StructuredTool(
+            name="invocar_investigador",
+            description=(
+                "Launches the researcher agent for detailed investigation over the project "
+                "documents: in-depth summaries, study plans, reports, analyses. The researcher "
+                "searches the RAG, reads documents, writes the full report in Markdown, saves it, "
+                "and returns a brief description plus the saved report name. Use it when the task "
+                "needs real investigation — not for a simple lookup you can answer yourself."
+            ),
+            func=_stub,
+            args_schema=_InvocarInvestigadorInput,
+        )
     if name == "invocar_creador_documentos":
         return StructuredTool(
             name="invocar_creador_documentos",
@@ -270,6 +291,7 @@ def _build_intercepted(name: str) -> StructuredTool:
 _INTERCEPTED = {
     "generar_documento_markdown",
     "generar_documento_codigo",
+    "invocar_investigador",
     "invocar_creador_documentos",
 }
 

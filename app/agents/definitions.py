@@ -1,12 +1,18 @@
 """
 Declarative agent definitions for the BriefScope multi-agent system.
 
-Two roles, each with a system-prompt file and an allow-list of tools:
+Three roles, each with a system-prompt file and an allow-list of tools:
 
-  ORCHESTRATOR  — talks to the user, searches the project documents itself (RAG),
-                  answers directly, and—when a downloadable deliverable is
-                  wanted—hands a saved research report to the creator.
-                  Tools: RAG search + save/read research + invoke the creator.
+  ORCHESTRATOR  — talks to the user and handles simple tasks itself (a quick RAG
+                  lookup, reading a document or a saved report, answering within
+                  its capacity). It delegates detailed investigation to the
+                  researcher and document creation to the creator.
+                  Tools: RAG search + save/read research + invoke researcher +
+                  invoke the creator.
+  RESEARCHER    — runs detailed investigations, summaries, study plans, reports…
+                  over the project documents, saves the full report in Markdown
+                  and returns a brief description plus the saved report name.
+                  Tools: RAG search + read documents/research + save research.
   CREATOR       — turns a research report into a downloadable document.
                   Tools: read research + format guide + generate document.
 
@@ -62,7 +68,7 @@ class AgentDef:
 
 
 # Tool names handled specially by the runtime (they spawn sub-agents).
-AGENT_INVOCATION_TOOLS = ("invocar_creador_documentos",)
+AGENT_INVOCATION_TOOLS = ("invocar_investigador", "invocar_creador_documentos")
 
 # Search/research tools the orchestrator uses to gather information itself.
 RESEARCH_TOOLS = (
@@ -72,10 +78,25 @@ RESEARCH_TOOLS = (
     "leer_documento",
 )
 
+# Tools the researcher uses to investigate the project documents and save its
+# report. No invocation tools — the researcher never spawns further sub-agents.
+RESEARCHER_TOOLS = (
+    "buscar_en_documentos",
+    "leer_documento",
+    "leer_investigacion",
+    "guardar_investigacion",
+)
+
 ORCHESTRATOR = AgentDef(
     name="orquestador",
     prompt_file="orquestador.md",
-    tools=RESEARCH_TOOLS + ("invocar_creador_documentos",),
+    tools=RESEARCH_TOOLS + ("invocar_investigador", "invocar_creador_documentos"),
+)
+
+RESEARCHER = AgentDef(
+    name="investigador",
+    prompt_file="investigador.md",
+    tools=RESEARCHER_TOOLS,
 )
 
 CREATOR = AgentDef(
@@ -91,4 +112,4 @@ CREATOR = AgentDef(
     ),
 )
 
-BY_NAME = {a.name: a for a in (ORCHESTRATOR, CREATOR)}
+BY_NAME = {a.name: a for a in (ORCHESTRATOR, RESEARCHER, CREATOR)}

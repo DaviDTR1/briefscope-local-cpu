@@ -35,7 +35,7 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, Tool
 from app import config
 from app.logging_config import logger
 from app.agents.context import RunContext
-from app.agents.definitions import AgentDef, ORCHESTRATOR, CREATOR, RESEARCH_TOOLS
+from app.agents.definitions import AgentDef, ORCHESTRATOR, RESEARCHER, CREATOR, RESEARCH_TOOLS
 from app.agents.registry import build_tools
 from app.services.llm.provider import build_llm
 
@@ -48,6 +48,7 @@ _TOOL_LABEL = {
     "leer_documento":              "Reading document",
     "generar_documento_markdown":  "Generating document (Markdown)",
     "generar_documento_codigo":    "Generating document (code)",
+    "invocar_investigador":        "Researching the documents",
     "invocar_creador_documentos":  "Creating document",
 }
 
@@ -218,7 +219,7 @@ async def run_agent(
             )
             yield _thinking(_TOOL_LABEL.get(name, name))
 
-            if name == "invocar_creador_documentos":
+            if name in ("invocar_investigador", "invocar_creador_documentos"):
                 async for ev, result in _delegate(name, args, ctx, depth):
                     if ev is not None:
                         yield ev
@@ -308,16 +309,38 @@ async def _delegate(name: str, args: dict, ctx: RunContext, depth: int):
         return
 
     ctx.delegations += 1
+
+    # invocar_investigador → researcher sub-agent. It investigates the documents,
+    # saves the full report in Markdown and returns a brief description + the
+    # saved report name, which the orchestrator can hand to the creator later.
+    if name == "invocar_investigador":
+        logger.info(
+            "[delegate] → researcher sub-agent (depth=%d, delegation #%d)",
+            depth + 1, ctx.delegations,
+        )
+        tarea = args.get("tarea", "")
+        before = len(ctx.saved_research)
+        sink: list[str] = []
+        user_text = f"Investigation task:\n{tarea}"
+        async for ev in run_agent(
+            RESEARCHER, [{"role": "user", "content": user_text}], ctx,
+            depth=depth + 1, stream_text=False, result_sink=sink,
+        ):
+            yield ev, None
+        sub_text = sink[0] if sink else ""
+        saved = ctx.saved_research[-1] if len(ctx.saved_research) > before else "(none)"
+        yield None, f"{sub_text}\n\n[SAVED_RESEARCH: {saved}]"
+        return
+
+    # invocar_creador_documentos → creator sub-agent.
     logger.info(
         "[delegate] → creator sub-agent (depth=%d, delegation #%d)",
         depth + 1, ctx.delegations,
     )
-
-    # invocar_creador_documentos
     nombre_informe = args.get("nombre_informe", "")
     instruccion = args.get("instruccion", "")
     formato = args.get("formato") or "the most appropriate one"
-    sink: list[str] = []
+    sink = []
     user_text = (
         f"Source content: {nombre_informe}\n"
         f"Instruction: {instruccion}\n"
