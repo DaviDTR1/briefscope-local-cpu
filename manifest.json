@@ -5,7 +5,7 @@
   "configuration_entry_point": "/api/briefscope_local_cpu/config",
   "documentation_entry_point": "/api/briefscope_local_cpu/docs",
   "healthcheck_entry_point": "/api/briefscope_local_cpu/health",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "logo": "logo.png",
   "description": "Agente que analiza y genera documentos. Analiza los archivos que subes (PDF, DOCX, XLSX, TXT, MD) y genera entregables descargables (PDF, DOCX, XLSX, PPTX, MD, TXT), con búsqueda RAG sobre tu contenido. Versión LOCAL CPU: LLM vía Ollama y embeddings locales (sentence-transformers) en CPU; sin internet ni API keys.",
   "description_en": "Agent that analyzes and generates documents. It analyzes your uploaded files (PDF, DOCX, XLSX, TXT, MD) and generates downloadable deliverables (PDF, DOCX, XLSX, PPTX, MD, TXT), with RAG search over your content. LOCAL CPU version: LLM via Ollama and local embeddings (sentence-transformers) on CPU; no internet or API keys required.",

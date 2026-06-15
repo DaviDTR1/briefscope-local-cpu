@@ -121,8 +121,12 @@ def _md_to_html_string(content: str, estilo_css: str | None, titulo: str = "Docu
     import html as _html
     import markdown
 
+    # `md_in_html` lets Markdown written *inside* raw HTML wrappers (e.g. a
+    # two-column <div markdown="1">...</div> used for layout) be parsed instead
+    # of leaking through as literal text. `attr_list` allows {: ...} attributes.
     body = markdown.markdown(
-        content, extensions=["tables", "fenced_code", "sane_lists", "nl2br"]
+        content,
+        extensions=["tables", "fenced_code", "sane_lists", "nl2br", "md_in_html", "attr_list"],
     )
     css = estilo_css if estilo_css else _DEFAULT_CSS
     safe_title = _html.escape(titulo)

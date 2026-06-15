@@ -52,6 +52,23 @@ _TOOL_LABEL = {
 }
 
 
+# Tool arguments that may carry large payloads (full document bodies/code).
+# They are summarized as a size, never logged verbatim.
+_BIG_ARG_KEYS = ("contenido_markdown", "codigo_python", "estilo_css", "contenido_md")
+
+
+def _args_summary(args: dict) -> str:
+    """Compact, log-friendly view of tool args (large payloads shown as a size)."""
+    parts = []
+    for key, value in (args or {}).items():
+        if key in _BIG_ARG_KEYS:
+            parts.append(f"{key}=<{len(str(value))} chars>")
+        else:
+            text = str(value)
+            parts.append(f"{key}={text[:77] + '…' if len(text) > 80 else text}")
+    return ", ".join(parts) if parts else "(no args)"
+
+
 def _thinking(msg: str) -> str:
     return json.dumps({"__thinking__": msg})
 
@@ -144,6 +161,11 @@ async def run_agent(
     bound, executables = build_tools(tools if tools is not None else agent.tools, ctx)
     llm = base_llm.bind_tools(bound) if bound else base_llm
 
+    logger.info(
+        "[agent:%s] start (depth=%d, max_rounds=%d, stream_text=%s, project=%s)",
+        agent.name, depth, agent.max_rounds, stream_text, ctx.project_id,
+    )
+
     lc_messages = [SystemMessage(content=_system_for(agent, ctx))] + _to_lc_messages(messages)
     final_text = ""
 
@@ -191,6 +213,9 @@ async def run_agent(
             args = tc.get("args", {}) or {}
             call_id = tc.get("id", f"call_{_round}")
 
+            logger.info(
+                "[agent:%s] tool → %s(%s)", agent.name, name, _args_summary(args),
+            )
             yield _thinking(_TOOL_LABEL.get(name, name))
 
             if name == "invocar_creador_documentos":
@@ -249,6 +274,10 @@ async def run_agent(
                 else:
                     try:
                         result = tool.invoke(args)
+                        logger.info(
+                            "[agent:%s] tool ✓ %s (%d chars)",
+                            agent.name, name, len(str(result)),
+                        )
                     except Exception as exc:
                         logger.exception("Error tool %s: %s", name, exc)
                         result = f"Error in {name}: {exc}"
@@ -256,6 +285,7 @@ async def run_agent(
 
         lc_messages = lc_messages + new_msgs
 
+    logger.info("[agent:%s] done (%d chars)", agent.name, len(final_text.strip()))
     result_sink.append(final_text.strip())
 
 
@@ -267,6 +297,10 @@ async def _delegate(name: str, args: dict, ctx: RunContext, depth: int):
     max_delegations = int(config.get("max_delegations", 4))
 
     if depth + 1 > max_depth or ctx.delegations >= max_delegations:
+        logger.warning(
+            "[delegate] limit reached (depth=%d/%d, delegations=%d/%d) — not delegating",
+            depth + 1, max_depth, ctx.delegations, max_delegations,
+        )
         yield None, (
             "Delegation limit reached. Answer the user with the "
             "information already available without delegating further."
@@ -274,6 +308,10 @@ async def _delegate(name: str, args: dict, ctx: RunContext, depth: int):
         return
 
     ctx.delegations += 1
+    logger.info(
+        "[delegate] → creator sub-agent (depth=%d, delegation #%d)",
+        depth + 1, ctx.delegations,
+    )
 
     # invocar_creador_documentos
     nombre_informe = args.get("nombre_informe", "")

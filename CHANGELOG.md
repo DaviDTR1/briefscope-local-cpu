@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-06-14
+
+### Fixed
+
+- Markdown written inside raw HTML wrappers (for example a multi-column layout
+  `<div>`) is now parsed instead of leaking through as literal `###`/`-` text in
+  generated documents. The Markdown engine enables the `md_in_html` and
+  `attr_list` extensions, and the agent format guides document the required
+  `markdown="1"` attribute.
+- Chat state and any in-progress streamed reply are now preserved when switching
+  between projects. A reply that arrives while you are viewing another project is
+  kept, so returning no longer loses the message or requires a page reload.
+
+### Changed
+
+- Streaming responses no longer auto-scroll the chat on every token; the view
+  scrolls only when a new message begins, letting you read at your own pace.
+
+### Added
+
+- Informative agent logs (agent start/finish, each tool entered with a safe
+  argument summary, tool results, and sub-agent delegations) so advanced users
+  can follow the agent's behavior.
+
 ## [1.1.0] - 2026-06-14
 
 ### Fixed
