@@ -16,7 +16,7 @@
 # Tip: change "8080:8080" to e.g. "8090:8080" to use a different host port.
 
 services:
-  # ── Ollama (CPU) ──────────────────────────────────────────────────────────
+  # Ollama (CPU)
   briefscope_ollama_cpu:
     image: ollama/ollama:latest
     container_name: briefscope_ollama_cpu
@@ -26,7 +26,7 @@ services:
       - briefscope
     restart: unless-stopped
 
-  # ── ChromaDB vector store ─────────────────────────────────────────────────
+  # ChromaDB vector store
   briefscope_chroma_cpu:
     image: chromadb/chroma:1.5.9
     container_name: briefscope_chroma_cpu
@@ -39,14 +39,14 @@ services:
       - briefscope
     restart: unless-stopped
 
-  # ── BriefScope app ────────────────────────────────────────────────────────
+  # BriefScope app
   briefscope_local_cpu:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: briefscope_local_cpu_service
     environment:
-      - ROOT_PATH=        # blank → UI, API and /docs serve at the host root
+      - "ROOT_PATH="
       - LLM_MODE=local
       - OLLAMA_HOST=http://briefscope_ollama_cpu:11434
     volumes:
