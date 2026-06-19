@@ -2,8 +2,8 @@
 
 **Document-analysis agent.** Upload your documents, ask questions about them, and
 let the agent research, summarize and generate downloadable deliverables —
-running **fully offline on CPU**: the LLM runs in a bundled Ollama container and
-embeddings run locally via sentence-transformers.
+running **fully offline on CPU**: both the LLM and the embeddings run in a
+bundled Ollama container (embeddings via `nomic-embed-text` by default).
 
 > Runs **two ways**: as a plugin inside the
 > [QueAI](https://github.com/queai-project/QueAI) kernel, or fully
@@ -11,7 +11,7 @@ embeddings run locally via sentence-transformers.
 > [Run standalone (without QueAI)](#run-standalone-without-queai).
 
 > This is the **LOCAL CPU** variant. By default it needs **no API keys and no
-> internet** once the model and embedding weights are downloaded — the only
+> internet** once the LLM and embedding models are downloaded — the only
 > runtime feature that reaches the internet is the **optional web search**, which
 > is off by default. It can optionally be pointed at a cloud provider from the
 > Settings UI. For other backends see the [other variants](#other-variants).
@@ -45,9 +45,8 @@ embeddings run locally via sentence-transformers.
 
 ```
 client → Traefik (PathPrefix /api/briefscope_local_cpu) → FastAPI app
-                                                            ├── Ollama (LLM, bundled container, CPU)
-                                                            ├── ChromaDB (vector store, bundled container)
-                                                            └── sentence-transformers (embeddings, in-process)
+                                                            ├── Ollama (LLM + embeddings, bundled container, CPU)
+                                                            └── ChromaDB (vector store, bundled container)
 ```
 
 - **Backend**: FastAPI (`app/`), SQLAlchemy for project/conversation metadata
@@ -56,7 +55,9 @@ client → Traefik (PathPrefix /api/briefscope_local_cpu) → FastAPI app
   reached over HTTP on the shared `queai_network`.
 - **Vector store**: a bundled `chromadb/chroma` container
   (`briefscope_chroma_cpu`). Data persists in its own Docker volume.
-- **Embeddings**: sentence-transformers, run in-process via ChromaDB on CPU.
+- **Embeddings**: computed by the bundled Ollama server (`/api/embed`,
+  `nomic-embed-text` by default) and passed to ChromaDB explicitly — no
+  sentence-transformers/torch, so the image stays small.
 - **Frontend**: a React (Vite + TypeScript) single-page app served from
   `frontend_dist/` at `/ui`.
 
@@ -154,10 +155,11 @@ Tunable from the Settings UI:
 - **Ollama model** — downloaded automatically on first use if not present.
   Recommended CPU models are listed in `.env.example`
   (`llama3.2`, `phi4-mini`, `mistral`, `deepseek-r1:7b`).
-- **Embedding model** — local sentence-transformers model used for document
-  search. Recommended models (English and multilingual) are listed in
-  `.env.example`. **Changing it invalidates previously indexed documents —
-  re-upload them** so they are re-embedded with the new model.
+- **Embedding model** — Ollama embedding model used for document search
+  (`nomic-embed-text` by default; `mxbai-embed-large`, `bge-m3` and
+  `qwen3-embedding` are also available, see `.env.example`). Pulled into Ollama
+  automatically on first use. **Changing it invalidates previously indexed
+  documents — re-upload them** so they are re-embedded with the new model.
 - **RAG token threshold**, **RAG top-K**, **history compaction**.
 
 ## File generation
@@ -193,8 +195,8 @@ different LLM/embedding backend:
 
 | Variant | LLM & embeddings | Keys / internet |
 |---|---|---|
-| **LOCAL CPU** (this one) | Ollama + local sentence-transformers (CPU) | none, offline |
-| LOCAL GPU | Ollama + local sentence-transformers (NVIDIA GPU) | none, offline |
+| **LOCAL CPU** (this one) | Ollama LLM + Ollama embeddings (CPU) | none, offline |
+| LOCAL GPU | Ollama LLM + Ollama embeddings (NVIDIA GPU) | none, offline |
 | CLOUD OpenAI | OpenAI GPT + OpenAI embeddings | OpenAI key, outbound |
 | CLOUD Gemini | Google Gemini + Google embeddings | Google key, outbound |
 

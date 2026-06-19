@@ -5,10 +5,10 @@
   "configuration_entry_point": "/api/briefscope_local_cpu/config",
   "documentation_entry_point": "/api/briefscope_local_cpu/docs",
   "healthcheck_entry_point": "/api/briefscope_local_cpu/health",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "logo": "logo.png",
-  "description": "Agente que analiza y genera documentos. Analiza los archivos que subes (PDF, DOCX, XLSX, TXT, MD) y genera entregables descargables (PDF, DOCX, XLSX, PPTX, MD, TXT), con búsqueda RAG sobre tu contenido y búsqueda web opcional (DuckDuckGo, sin API key). Versión LOCAL CPU: LLM vía Ollama y embeddings locales (sentence-transformers) en CPU; funciona sin API keys.",
-  "description_en": "Agent that analyzes and generates documents. It analyzes your uploaded files (PDF, DOCX, XLSX, TXT, MD) and generates downloadable deliverables (PDF, DOCX, XLSX, PPTX, MD, TXT), with RAG search over your content and optional web search (DuckDuckGo, no API key). LOCAL CPU version: LLM via Ollama and local embeddings (sentence-transformers) on CPU; runs without API keys.",
+  "description": "Agente que analiza y genera documentos. Analiza los archivos que subes (PDF, DOCX, XLSX, TXT, MD) y genera entregables descargables (PDF, DOCX, XLSX, PPTX, MD, TXT), con búsqueda RAG sobre tu contenido y búsqueda web opcional (DuckDuckGo, sin API key). Versión LOCAL CPU: LLM y embeddings locales vía Ollama (nomic-embed-text por defecto) en CPU; funciona sin API keys.",
+  "description_en": "Agent that analyzes and generates documents. It analyzes your uploaded files (PDF, DOCX, XLSX, TXT, MD) and generates downloadable deliverables (PDF, DOCX, XLSX, PPTX, MD, TXT), with RAG search over your content and optional web search (DuckDuckGo, no API key). LOCAL CPU version: LLM and local embeddings via Ollama (nomic-embed-text by default) on CPU; runs without API keys.",
   "author": "[DaviDTR1](https://github.com/DaviDTR1)",
   "license": "MIT"
 }
