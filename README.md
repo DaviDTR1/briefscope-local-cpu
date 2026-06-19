@@ -11,9 +11,10 @@ embeddings run locally via sentence-transformers.
 > [Run standalone (without QueAI)](#run-standalone-without-queai).
 
 > This is the **LOCAL CPU** variant. By default it needs **no API keys and no
-> internet** once the model and embedding weights are downloaded. It can
-> optionally be pointed at a cloud provider from the Settings UI. For other
-> backends see the [other variants](#other-variants).
+> internet** once the model and embedding weights are downloaded — the only
+> runtime feature that reaches the internet is the **optional web search**, which
+> is off by default. It can optionally be pointed at a cloud provider from the
+> Settings UI. For other backends see the [other variants](#other-variants).
 
 ---
 
@@ -25,10 +26,17 @@ embeddings run locally via sentence-transformers.
 - **Adaptive retrieval** — for a small corpus the agent reads the full context;
   once the corpus crosses a configurable token threshold it switches to **RAG**
   (vector search over ChromaDB) and retrieves the most relevant chunks.
-- **Multi-agent orchestration** — an orchestrator delegates to a creator agent
-  to research and produce deliverables.
+- **Multi-agent orchestration** — a main agent is the only one that talks to the
+  user and delegates as needed: a research agent investigates the project's
+  documents (and, when enabled, the web) to produce thorough reports, and a
+  creator agent turns the gathered content into polished, downloadable deliverables.
 - **File generation** — produces downloadable PDF, DOCX, PPTX, XLSX, MD and TXT
   files through two complementary engines (see [File generation](#file-generation)).
+- **Web search (optional)** — a per-project globe toggle next to the attachment
+  (＋) button lets permitted agents pull live results from the web via DuckDuckGo
+  (the `ddgs` package, no API key). Off by default; which agents may search is
+  configurable in **Settings → Local → Web Search**. Using it is the only feature
+  that reaches the internet at runtime.
 - **Streaming chat** — responses stream over Server-Sent Events; conversation
   history is kept and automatically compacted to save tokens.
 - **Bilingual UI** — Spanish/English switch in the frontend.
@@ -69,7 +77,7 @@ Key REST routes (all under the plugin root path `/api/briefscope_local_cpu`):
 - **Docker + Docker Compose v2** — that's all you need to run it.
 - Enough RAM for the chosen Ollama model (the default `llama3.2` needs ~2 GB).
 - Internet access **only** on first use, to download the model and embedding
-  weights. After that it runs offline.
+  weights. After that it runs offline, unless you enable the optional web search.
 
 QueAI is **optional**: it's only needed if you want to run BriefScope as a
 managed plugin alongside other plugins. To run it on its own, skip straight to
